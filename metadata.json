@@ -1,0 +1,6 @@
+{
+  "name": "Velaa",
+  "description": "AI-powered career assistant for Indian freshers featuring resume optimization for top companies and job matching for entry-level roles.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}

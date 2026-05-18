@@ -1,0 +1,75 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["candidate", "recruiter", "admin"] },
+        "location": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "roadmapCompletion": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "isVerified": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt", "updatedAt"]
+    },
+    "Analysis": {
+      "title": "Analysis",
+      "description": "Resume analysis result",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "resumeText": { "type": "string" },
+        "targetCompany": { "type": "string" },
+        "atsScore": { "type": "integer" },
+        "missingSkills": { "type": "array", "items": { "type": "string" } },
+        "matchedJobs": { "type": "array" },
+        "tips": { "type": "string" },
+        "improvedResume": { "type": "string" },
+        "interviewQuestions": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "resumeText", "atsScore", "createdAt"]
+    },
+    "InterviewRequest": {
+      "title": "Interview Request",
+      "description": "Request from recruiter to candidate",
+      "type": "object",
+      "properties": {
+        "requesterId": { "type": "string" },
+        "candidateId": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined"] }
+      },
+      "required": ["requesterId", "candidateId", "timestamp", "status"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "analyses/{analysisId}": {
+      "schema": "Analysis",
+      "description": "Analysis results"
+    },
+    "interview_requests/{requestId}": {
+      "schema": "InterviewRequest",
+      "description": "Interview requests from recruiters"
+    },
+    "applications/{applicationId}": {
+      "schema": "object",
+      "description": "User job applications"
+    },
+    "support_tickets/{ticketId}": {
+      "schema": "object",
+      "description": "Support queries"
+    }
+  }
+}

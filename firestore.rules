@@ -1,0 +1,92 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- HELPERS ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- ENTITY VALIDATION ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'createdAt', 'updatedAt'])
+        && data.uid == request.auth.uid
+        && data.email is string && data.email.size() <= 256
+        && data.displayName is string && data.displayName.size() <= 128
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    function isRecruiter() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'recruiter';
+    }
+
+    function isValidAnalysis(data) {
+      return data.keys().hasAll(['userId', 'resumeText', 'targetCompany', 'atsScore', 'missingSkills', 'matchedJobs', 'tips', 'createdAt', 'salaryIntelligence', 'interviewQuestions', 'culture', 'trends'])
+        && data.keys().size() == 12
+        && data.userId == request.auth.uid
+        && data.resumeText is string && data.resumeText.size() <= 30000
+        && data.targetCompany is string && data.targetCompany.size() <= 512
+        && data.atsScore is int && data.atsScore >= 0 && data.atsScore <= 100
+        && data.missingSkills is list && data.missingSkills.size() <= 20
+        && data.matchedJobs is list && data.matchedJobs.size() <= 20
+        && data.tips is string && data.tips.size() <= 10000
+        && data.createdAt == request.time;
+    }
+
+    // --- COLLECTION MATCHES ---
+
+    // Global Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isRecruiter();
+      allow list: if (isSignedIn() && resource.data.uid == request.auth.uid) || (isRecruiter() && resource.data.roadmapCompletion == 100);
+      allow create, update: if isOwner(userId);
+    }
+
+    match /interview_requests/{requestId} {
+      allow create: if isRecruiter();
+      allow read: if isSignedIn() && (resource.data.candidateId == request.auth.uid || resource.data.requesterId == request.auth.uid);
+      allow update: if isSignedIn() && resource.data.candidateId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+    }
+
+    match /applications/{applicationId} {
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /support_tickets/{ticketId} {
+      allow create: if isSignedIn();
+    }
+
+    match /analyses/{analysisId} {
+      // allow list: resource.data.userId == request.auth.uid; // Enforces secure queries
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidAnalysis(incoming());
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}
