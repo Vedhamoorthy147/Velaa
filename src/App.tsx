@@ -749,7 +749,7 @@ function VelaaDashboard() {
     }
   };
 
-  const handleApplyToJob = async () => {
+  const handleApplyToJob = async (jobTitle?: string, jobCompany?: string) => {
     if (!user) {
       toast.error("Please sign in to save your progress");
       return;
@@ -760,8 +760,8 @@ function VelaaDashboard() {
     
     const appData = {
       trackingId: trackerId,
-      company: targetCompany || "Elite Partner",
-      role: targetRole || "Fresh Graduate Role",
+     company: jobCompany || targetCompany || "Company",
+     role: jobTitle || targetRole || "Role",
       status: "Submitted",
       appliedAt: timestamp,
       resumeVersion: "Velaa-Optimized-V2.pdf",
@@ -1789,7 +1789,7 @@ function VelaaDashboard() {
     const searchQuery = encodeURIComponent(`${job.title} ${job.company?.display_name || ''}`);
     window.open(`https://www.linkedin.com/jobs/search/?keywords=${searchQuery}&location=India`, '_blank');
   }
-    handleApplyToJob();
+    handleApplyToJob(job.title, job.company?.display_name);
   }}
   className="px-4 py-2 border border-navy text-navy text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-navy hover:text-white transition-all flex items-center justify-center gap-2"
 >
