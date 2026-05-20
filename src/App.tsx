@@ -1403,7 +1403,10 @@ function VelaaDashboard() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as Tab)}
+                onClick={() => {
+                  setActiveTab(tab.id as Tab);
+                  if (tab.id === "jobs") fetchLiveJobs(targetRole || "software engineer");
+                }}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-2 py-5 text-xs font-black uppercase tracking-widest transition-all relative",
                   activeTab === tab.id ? "text-navy" : "text-slate-400 hover:bg-white"
