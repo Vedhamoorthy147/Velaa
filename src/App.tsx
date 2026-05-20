@@ -1782,11 +1782,15 @@ function VelaaDashboard() {
           {isGeneratingCL ? "Drafting..." : "Auto-Draft CL"}
         </button>
         <button
-          onClick={() => job.redirect_url ? window.open(job.redirect_url, '_blank') : handleApplyToJob()}
-          className="px-4 py-2 border border-navy text-navy text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-navy hover:text-white transition-all flex items-center justify-center gap-2"
-        >
-          Apply Now →
-        </button>
+  onClick={() => {
+    const searchQuery = encodeURIComponent(`${job.title} ${job.company?.display_name || ''}`);
+    window.open(`https://www.linkedin.com/jobs/search/?keywords=${searchQuery}&location=India`, '_blank');
+    handleApplyToJob();
+  }}
+  className="px-4 py-2 border border-navy text-navy text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-navy hover:text-white transition-all flex items-center justify-center gap-2"
+>
+  Apply Now →
+</button>
       </div>
     </div>
 
