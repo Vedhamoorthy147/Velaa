@@ -570,7 +570,9 @@ function VelaaDashboard() {
   const audioChunks = useRef<Blob[]>([]);
   const [recordedAudio, setRecordedAudio] = useState<{ data: string; mimeType: string } | null>(null);
   const [isRecordingReal, setIsRecordingReal] = useState(false);
-
+  useEffect(() => {
+    fetchLiveJobs("software engineer");
+}, []);
   useEffect(() => {
     fetch("/api/keywords")
       .then(res => res.json())
