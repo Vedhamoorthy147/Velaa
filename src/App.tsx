@@ -1232,7 +1232,7 @@ function VelaaDashboard() {
         <div className="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo className="h-10 w-auto aspect-[100/60]" />
-            <span className="text-2xl font-black tracking-tight font-display text-offwhite">Velaa Intelligence</span>
+            <span className="text-2xl font-black tracking-tight font-display text-offwhite">Velaa</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <button 
@@ -1360,7 +1360,7 @@ function VelaaDashboard() {
         )}
       </AnimatePresence>
 
-      <main className="max-w-4xl mx-auto px-4 py-16">
+      <main className="max-w-4xl mx-auto px-3 py-6 md:py-16">
         {/* Landing/Hero Section */}
         {!result && (
           <section className="text-center mb-16">
@@ -1405,7 +1405,7 @@ function VelaaDashboard() {
         {/* Main Interface */}
         <div className="bg-white rounded-xl shadow-2xl shadow-navy/5 border border-slate-100 overflow-hidden">
           {/* Tabs */}
-          <div className="flex border-b border-slate-50 bg-slate-50/30">
+          <div className="flex border-b border-slate-50 bg-slate-50/30 overflow-x-auto scrollbar-hide">
             {[
               { id: "optimize", label: "AI Review", icon: FileText },
               { id: "skills", label: "Tips", icon: Sparkles },
@@ -1420,7 +1420,7 @@ function VelaaDashboard() {
                   if (tab.id === "jobs") fetchLiveJobs(targetRole || "software engineer");
                 }}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-5 text-xs font-black uppercase tracking-widest transition-all relative",
+                  "flex-shrink-0 flex items-center justify-center gap-2 py-4 px-4 text-xs font-black uppercase tracking-widest transition-all relative",
                   activeTab === tab.id ? "text-navy" : "text-slate-400 hover:bg-white"
                 )}
               >
@@ -1743,7 +1743,7 @@ function VelaaDashboard() {
   </div>
 
   {/* Filter Bar */}
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
     <input
       type="text"
       placeholder="🔍 Role (e.g. React Developer)"
@@ -1823,7 +1823,7 @@ function VelaaDashboard() {
           </p>
         </div>
       </div>
-      <div className="flex flex-col gap-2 flex-shrink-0">
+      <div className="flex flex-col gap-2 flex-shrink-0 min-w-[100px]">
         {job.matchRate && (
           <div className="text-right mb-1">
             <div className="text-[9px] font-black text-cyan uppercase tracking-widest">Match</div>
@@ -2536,7 +2536,7 @@ function VelaaDashboard() {
       </footer>
 
       {/* Negotiation Coach Bubble */}
-      <div className="fixed bottom-6 right-6 z-[60]">
+      <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[60]">
         <AnimatePresence>
           {showNegotiationCoach && (
             <motion.div
