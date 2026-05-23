@@ -277,11 +277,14 @@ function VelaaDashboard() {
 
   const [liveJobs, setLiveJobs] = useState<any[]>([]);
   const [isFetchingJobs, setIsFetchingJobs] = useState(false);
-
-  const fetchLiveJobs = async (role = "software engineer") => {
+  const [jobFilter, setJobFilter] = useState({ role: "", city: "", experience: "" });
+  const fetchLiveJobs = async (role = "software engineer", city = "", experience = "") => {
   setIsFetchingJobs(true);
   try {
-    const res = await fetch(`/api/jobs?role=${encodeURIComponent(role)}&location=india`);
+    const params = new URLSearchParams({ role, location: "india" });
+    if (city) params.append("city", city);
+    if (experience) params.append("experience", experience);
+    const res = await fetch(`/api/jobs?${params.toString()}`);
     const data = await res.json();
     setLiveJobs(data);
   } catch (err) {
@@ -1721,15 +1724,61 @@ function VelaaDashboard() {
                   exit={{ opacity: 0, x: 10 }}
                   className="space-y-8"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Your Career Path</h3>
-                    <button 
-                      onClick={handleHardRefresh}
-                      className="text-[9px] font-black uppercase text-cyan hover:text-navy flex items-center gap-1 transition-all"
-                    >
-                      <RefreshCw className="w-3 h-3" /> Reset Session
-                    </button>
-                  </div>
+                  <div className="flex flex-col gap-4 mb-4">
+  <div className="flex items-center justify-between">
+    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Your Career Path</h3>
+    <button 
+      onClick={handleHardRefresh}
+      className="text-[9px] font-black uppercase text-cyan hover:text-navy flex items-center gap-1 transition-all"
+    >
+      <RefreshCw className="w-3 h-3" /> Reset Session
+    </button>
+  </div>
+
+  {/* Filter Bar */}
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <input
+      type="text"
+      placeholder="🔍 Role (e.g. React Developer)"
+      value={jobFilter.role}
+      onChange={(e) => setJobFilter(prev => ({ ...prev, role: e.target.value }))}
+      className="col-span-2 md:col-span-1 px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl outline-none focus:border-cyan bg-white"
+    />
+    <select
+      value={jobFilter.city}
+      onChange={(e) => setJobFilter(prev => ({ ...prev, city: e.target.value }))}
+      className="px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl outline-none focus:border-cyan bg-white"
+    >
+      <option value="">📍 All Cities</option>
+      <option value="Bengaluru">Bengaluru</option>
+      <option value="Mumbai">Mumbai</option>
+      <option value="Delhi">Delhi</option>
+      <option value="Hyderabad">Hyderabad</option>
+      <option value="Chennai">Chennai</option>
+      <option value="Pune">Pune</option>
+      <option value="Kolkata">Kolkata</option>
+      <option value="Ahmedabad">Ahmedabad</option>
+      <option value="Remote">Remote</option>
+    </select>
+    <select
+      value={jobFilter.experience}
+      onChange={(e) => setJobFilter(prev => ({ ...prev, experience: e.target.value }))}
+      className="px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl outline-none focus:border-cyan bg-white"
+    >
+      <option value="">🎯 All Levels</option>
+      <option value="fresher">Fresher</option>
+      <option value="1-3 years">1–3 Years</option>
+      <option value="3-5 years">3–5 Years</option>
+      <option value="5+ years">5+ Years</option>
+    </select>
+    <button
+      onClick={() => fetchLiveJobs(jobFilter.role || targetRole || "software engineer", jobFilter.city, jobFilter.experience)}
+      className="px-4 py-2 bg-navy text-cyan text-xs font-black uppercase tracking-widest rounded-xl hover:bg-cyan hover:text-navy transition-all"
+    >
+      Search Jobs
+    </button>
+  </div>
+</div>
 
                   <div className="space-y-5">
                     {isFetchingJobs ? (

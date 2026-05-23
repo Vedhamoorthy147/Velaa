@@ -5,8 +5,11 @@ const cache: { data: any[]; time: number } = { data: [], time: 0 };
 const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const role = (req.query.role as string) || "software engineer";
-  const location = (req.query.location as string) || "india";
+const role = (req.query.role as string) || "software engineer";
+const location = (req.query.location as string) || "india";
+const city = (req.query.city as string) || "";
+const experience = (req.query.experience as string) || "";
+const searchQuery = `${role} ${experience} in ${city || location}`;
 
   if (cache.data.length > 0 && Date.now() - cache.time < CACHE_TTL) {
     return res.json(cache.data);
@@ -17,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 1 — JSearch (Google Jobs — best India coverage)
   try {
     const jsearchRes = await axios.get('https://jsearch.p.rapidapi.com/search', {
-      params: { query: `${role} in ${location}`, page: '1', num_pages: '1', date_posted: 'month' },
+      params: { query: searchQuery, page: '1', num_pages: '1', date_posted: 'month' },
       headers: {
         'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
         'X-RapidAPI-Key': process.env.JSEARCH_API_KEY || ''
