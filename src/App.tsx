@@ -278,6 +278,7 @@ function VelaaDashboard() {
   const [liveJobs, setLiveJobs] = useState<any[]>([]);
   const [isFetchingJobs, setIsFetchingJobs] = useState(false);
   const [jobFilter, setJobFilter] = useState({ role: "", city: "", experience: "" });
+  
   const fetchLiveJobs = async (role = "software engineer", city = "", experience = "") => {
   setIsFetchingJobs(true);
   try {
@@ -293,6 +294,12 @@ function VelaaDashboard() {
     setIsFetchingJobs(false);
   }
 };
+
+  useEffect(() => {
+  if (targetRole) {
+    setJobFilter(prev => ({ ...prev, role: targetRole }));
+  }
+}, [targetRole]);
   // New features state
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [isGeneratingCL, setIsGeneratingCL] = useState(false);

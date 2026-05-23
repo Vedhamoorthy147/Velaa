@@ -11,9 +11,10 @@ const city = (req.query.city as string) || "";
 const experience = (req.query.experience as string) || "";
 const searchQuery = `${role} ${experience} in ${city || location}`;
 
-  if (cache.data.length > 0 && Date.now() - cache.time < CACHE_TTL) {
-    return res.json(cache.data);
-  }
+  const hasFilters = city || experience || role !== "software engineer";
+if (!hasFilters && cache.data.length > 0 && Date.now() - cache.time < CACHE_TTL) {
+  return res.json(cache.data);
+}
 
   const results: any[] = [];
 
