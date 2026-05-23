@@ -1234,22 +1234,22 @@ function VelaaDashboard() {
           <Logo className="h-10 w-auto aspect-[100/60]" />
           <span className="text-lg md:text-xl font-black tracking-tight font-display text-offwhite">Velaa</span>
         </div>
-          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-8 flex-1 justify-center flex-nowrap">
             <button 
               onClick={() => setActiveTab("optimize")}
-              className={cn("text-xs uppercase tracking-widest font-bold transition-all", activeTab === "optimize" ? "text-cyan" : "text-white/60 hover:text-white")}
+              className={cn("text-[10px] lg:text-xs uppercase tracking-tight lg:tracking-widest font-bold transition-all whitespace-nowrap", activeTab === "optimize" ? "text-cyan" : "text-white/60 hover:text-white")}
             >
               Optimizer
             </button>
             <button 
               onClick={() => setActiveTab("jobs")}
-              className={cn("text-xs uppercase tracking-widest font-bold transition-all", activeTab === "jobs" ? "text-cyan" : "text-white/60 hover:text-white")}
+              className={cn("text-[10px] lg:text-xs uppercase tracking-tight lg:tracking-widest font-bold transition-all whitespace-nowrap",activeTab === "jobs" ? "text-cyan" : "text-white/60 hover:text-white")}
             >
               Job Matcher
             </button>
             <button 
               onClick={() => setActiveTab("applications")}
-              className={cn("text-xs uppercase tracking-widest font-bold transition-all", activeTab === "applications" ? "text-cyan" : "text-white/60 hover:text-white")}
+              className={cn("text-[10px] lg:text-xs uppercase tracking-tight lg:tracking-widest font-bold transition-all whitespace-nowrap", activeTab === "applications" ? "text-cyan" : "text-white/60 hover:text-white")}
             >
               My Applications
             </button>
@@ -1263,13 +1263,13 @@ function VelaaDashboard() {
             )}
             <button 
               onClick={() => setActiveTab("interview")}
-              className={cn("text-xs uppercase tracking-widest font-bold transition-all", activeTab === "interview" ? "text-cyan" : "text-white/60 hover:text-white")}
+              className={cn("text-[10px] lg:text-xs uppercase tracking-tight lg:tracking-widest font-bold transition-all whitespace-nowrap", activeTab === "interview" ? "text-cyan" : "text-white/60 hover:text-white")}
             >
               Interview Prep
             </button>
             <button 
               onClick={() => setActiveTab("profile")}
-              className={cn("text-xs uppercase tracking-widest font-bold transition-all", activeTab === "profile" ? "text-cyan" : "text-white/60 hover:text-white")}
+              className={cn("text-[10px] lg:text-xs uppercase tracking-tight lg:tracking-widest font-bold transition-all whitespace-nowrap", activeTab === "profile" ? "text-cyan" : "text-white/60 hover:text-white")}
             >
               Profile Sync
             </button>
