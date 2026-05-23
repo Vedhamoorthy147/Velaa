@@ -1229,11 +1229,11 @@ function VelaaDashboard() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-navy/95 backdrop-blur-md border-b border-white/5 shadow-lg shadow-navy/20">
-        <div className="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Logo className="h-10 w-auto aspect-[100/60]" />
-            <span className="text-2xl font-black tracking-tight font-display text-offwhite">Velaa</span>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 h-18 flex items-center gap-4">
+        <div className="flex items-center gap-3 flex-1">
+          <Logo className="h-10 w-auto aspect-[100/60]" />
+          <span className="text-lg md:text-xl font-black tracking-tight font-display text-offwhite">Velaa</span>
+        </div>
           <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
             <button 
               onClick={() => setActiveTab("optimize")}
@@ -1274,7 +1274,7 @@ function VelaaDashboard() {
               Profile Sync
             </button>
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-1 justify-end">
             {/* Connection Status Indicator */}
             <div 
               onClick={() => connectionStatus === 'offline' && window.location.reload()}
