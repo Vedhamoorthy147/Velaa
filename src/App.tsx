@@ -274,7 +274,84 @@ function VelaaDashboard() {
   const [analysisStep, setAnalysisStep] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const skillsCleanupDoneRef = useRef<string | null>(null);
+  const [showNaukriChat, setShowNaukriChat] = useState(false);
+  const [naukriMessages, setNaukriMessages] = useState<{role: 'ai' | 'user', text: string}[]>([]);
+  const [naukriInput, setNaukriInput] = useState("");
+  const [naukriStep, setNaukriStep] = useState(0);
+  const [naukriData, setNaukriData] = useState<any>({});
+  const [isNaukriTyping, setIsNaukriTyping] = useState(false);
+  const naukriQuestions = [
+  "Hi! 👋 I'm Velaa AI. Let's build your profile in 2 minutes.\n\nWhat's your current job title? (e.g. Software Engineer, MBA Fresher, Data Analyst)",
+  "Great! 🎯 Which city are you based in or open to relocate to? (e.g. Chennai, Bengaluru, Mumbai)",
+  "What are your top skills? Type them separated by commas.\n(e.g. React, Python, SQL, Marketing)",
+  "How many years of experience do you have? Type 0 if you're a fresher.",
+  "Which companies have you worked at? (Skip if fresher — just type 'Fresher')",
+  "What's your highest education? (e.g. B.Tech CSE from Anna University, MBA Finance from IIM)",
+  "Last one! 🎉 What kind of roles are you actively looking for?",
+];
+  const handleNaukriChatSend = async () => {
+  if (!naukriInput.trim()) return;
 
+  const userMsg = { role: 'user' as const, text: naukriInput };
+  const updatedMessages = [...naukriMessages, userMsg];
+  setNaukriMessages(updatedMessages);
+
+  const updatedData = { ...naukriData };
+  const keys = ['title', 'city', 'skills', 'experience', 'companies', 'education', 'targetRoles'];
+  updatedData[keys[naukriStep]] = naukriInput;
+  setNaukriData(updatedData);
+  setNaukriInput("");
+
+  const nextStep = naukriStep + 1;
+
+  if (nextStep < naukriQuestions.length) {
+    setIsNaukriTyping(true);
+    setTimeout(() => {
+      setNaukriMessages(prev => [...prev, { role: 'ai', text: naukriQuestions[nextStep] }]);
+      setIsNaukriTyping(false);
+      setNaukriStep(nextStep);
+    }, 800);
+  } else {
+    // All questions answered — save profile
+    setIsNaukriTyping(true);
+    setTimeout(async () => {
+      const profile = {
+        title: updatedData.title,
+        city: updatedData.city,
+        skills: updatedData.skills?.split(',').map((s: string) => s.trim()).filter(Boolean) || [],
+        experience: parseInt(updatedData.experience) || 0,
+        companies: updatedData.companies,
+        education: updatedData.education,
+        targetRoles: updatedData.targetRoles,
+        completedAt: new Date().toISOString()
+      };
+
+      setSyncedProfiles(prev => ({ ...prev, naukri: profile }));
+
+      if (user) {
+        await setDoc(doc(db, 'users', user.uid), {
+          naukriProfile: profile,
+          skills: profile.skills
+        }, { merge: true });
+      }
+
+      setNaukriMessages(prev => [...prev, {
+        role: 'ai',
+        text: `✅ Profile built successfully!\n\nHere's your summary:\n👤 ${profile.title}\n📍 ${profile.city}\n🛠 ${profile.skills.slice(0, 3).join(', ')}\n🎓 ${profile.education}\n\nVelaa will now match you with better jobs!`
+      }]);
+
+      setIsNaukriTyping(false);
+      triggerSuccess("Naukri profile built successfully!");
+
+      setTimeout(() => {
+        setShowNaukriChat(false);
+        setNaukriStep(0);
+        setNaukriMessages([]);
+        setNaukriData({});
+      }, 3000);
+    }, 1500);
+  }
+};
   const [liveJobs, setLiveJobs] = useState<any[]>([]);
   const [isFetchingJobs, setIsFetchingJobs] = useState(false);
   const [jobFilter, setJobFilter] = useState({ role: "", city: "", experience: "" });
@@ -1519,6 +1596,24 @@ function VelaaDashboard() {
                                 className="hidden" 
                                 accept=".pdf,.doc,.docx,image/*"
                               />
+<div className="flex items-center gap-3 w-full px-8">
+  <div className="flex-1 h-px bg-slate-200" />
+  <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">or</span>
+  <div className="flex-1 h-px bg-slate-200" />
+</div>
+<button
+  onClick={(e) => {
+    e.stopPropagation();
+    setShowNaukriChat(true);
+    setNaukriStep(0);
+    setNaukriMessages([{ role: 'ai', text: naukriQuestions[0] }]);
+    setNaukriData({});
+  }}
+  className="px-6 py-3 bg-gradient-to-r from-cyan/10 to-blue-500/10 border border-cyan/30 text-navy text-sm font-black uppercase tracking-widest rounded-xl hover:from-cyan/20 hover:to-blue-500/20 transition-all flex items-center gap-2"
+>
+  <MessageSquare className="w-4 h-4 text-cyan" />
+  No Resume? Build Profile with AI Chat
+</button>
                             </div>
                           ) : (
                             <div className="p-8 bg-offwhite rounded-xl border border-slate-200 flex items-center justify-between shadow-inner">
@@ -2270,7 +2365,12 @@ function VelaaDashboard() {
                         </p>
                         
                         <button 
-                          onClick={() => platform.id === 'linkedin' ? loginLinkedIn() : handleProfileSync(platform.id as 'naukri')}
+                          onClick={() => platform.id === 'linkedin' ? loginLinkedIn() : (() => {
+                            setShowNaukriChat(true);
+                            setNaukriStep(0);
+                            setNaukriMessages([{ role: 'ai', text: naukriQuestions[0] }]);
+                            setNaukriData({});
+                          })()}
                           disabled={!!isSyncing || authStatus === 'pending'}
                           className={cn(
                             "w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
@@ -2609,6 +2709,101 @@ function VelaaDashboard() {
           <Zap className="w-6 h-6 hidden group-hover:block animate-pulse" />
         </button>
       </div>
+
+      {/* AI Profile Builder Chat */}
+<AnimatePresence>
+  {showNaukriChat && (
+    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={() => setShowNaukriChat(false)}
+        className="absolute inset-0 bg-navy/80 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ y: "100%", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: "100%", opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        className="relative w-full md:max-w-md bg-[#0B1221] md:rounded-3xl rounded-t-3xl shadow-2xl flex flex-col"
+        style={{ height: '85vh', maxHeight: '600px' }}
+      >
+        <div className="bg-[#0D2040] px-4 py-3 flex items-center gap-3 border-b border-white/10 rounded-t-3xl flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan to-blue-500 flex items-center justify-center text-navy font-black text-sm flex-shrink-0">
+            V
+          </div>
+          <div className="flex-1">
+            <div className="font-bold text-white text-sm">Velaa AI Career Builder</div>
+            <div className="text-[10px] text-emerald-400 flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Online · {naukriStep}/{naukriQuestions.length} questions done
+            </div>
+          </div>
+          <button onClick={() => setShowNaukriChat(false)} className="text-white/40 hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="h-1 bg-white/10 flex-shrink-0">
+          <motion.div
+            className="h-full bg-gradient-to-r from-cyan to-blue-500"
+            animate={{ width: `${(naukriStep / naukriQuestions.length) * 100}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {naukriMessages.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`max-w-[82%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${
+                msg.role === 'user'
+                  ? 'bg-cyan text-navy font-semibold rounded-br-none'
+                  : 'bg-[#1A2B45] text-white rounded-bl-none border border-white/5'
+              }`}>
+                {msg.text}
+              </div>
+            </motion.div>
+          ))}
+          {isNaukriTyping && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+              <div className="bg-[#1A2B45] px-4 py-3 rounded-2xl rounded-bl-none border border-white/5 flex gap-1.5 items-center">
+                {[0,1,2].map(i => (
+                  <motion.div
+                    key={i}
+                    animate={{ y: [0, -5, 0] }}
+                    transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
+                    className="w-2 h-2 rounded-full bg-cyan"
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+        <div className="p-3 bg-[#0D2040] border-t border-white/10 flex gap-2 flex-shrink-0">
+          <input
+            type="text"
+            value={naukriInput}
+            onChange={(e) => setNaukriInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleNaukriChatSend()}
+            placeholder="Type your answer..."
+            disabled={isNaukriTyping}
+            className="flex-1 bg-white/10 text-white placeholder-white/30 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-1 focus:ring-cyan border border-white/10 disabled:opacity-50"
+            autoFocus
+          />
+          <button
+            onClick={handleNaukriChatSend}
+            disabled={!naukriInput.trim() || isNaukriTyping}
+            className="w-10 h-10 bg-cyan rounded-xl flex items-center justify-center text-navy disabled:opacity-40 hover:scale-105 transition-all flex-shrink-0"
+          >
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )}
+</AnimatePresence>
       {/* Velaa Roadmap Modal */}
       <AnimatePresence>
         {showRoadmap && (
