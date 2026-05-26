@@ -289,16 +289,14 @@ function VelaaDashboard() {
   "What's your highest education? (e.g. B.Tech CSE from Anna University, MBA Finance from IIM)",
   "Last one! 🎉 What kind of roles are you actively looking for?",
 ];
-  const handleNaukriChatSend = async () => {
-  if (!naukriInput.trim()) return;
+ const handleNaukriChatSend = async () => {
+  if (!naukriInput.trim() || isNaukriTyping) return;
 
   const userMsg = { role: 'user' as const, text: naukriInput };
-  const updatedMessages = [...naukriMessages, userMsg];
-  setNaukriMessages(updatedMessages);
+  setNaukriMessages(prev => [...prev, userMsg]);
 
-  const updatedData = { ...naukriData };
   const keys = ['title', 'city', 'skills', 'experience', 'companies', 'education', 'targetRoles'];
-  updatedData[keys[naukriStep]] = naukriInput;
+  const updatedData = { ...naukriData, [keys[naukriStep]]: naukriInput };
   setNaukriData(updatedData);
   setNaukriInput("");
 
@@ -312,13 +310,13 @@ function VelaaDashboard() {
       setNaukriStep(nextStep);
     }, 800);
   } else {
-    // All questions answered — save profile
     setIsNaukriTyping(true);
     setTimeout(async () => {
+      const skillsArray = updatedData.skills?.split(',').map((s: string) => s.trim()).filter(Boolean) || [];
       const profile = {
         title: updatedData.title,
         city: updatedData.city,
-        skills: updatedData.skills?.split(',').map((s: string) => s.trim()).filter(Boolean) || [],
+        skills: skillsArray,
         experience: parseInt(updatedData.experience) || 0,
         companies: updatedData.companies,
         education: updatedData.education,
@@ -328,27 +326,33 @@ function VelaaDashboard() {
 
       setSyncedProfiles(prev => ({ ...prev, naukri: profile }));
 
+      if (!resumeText) {
+        setResumeText(`Name: ${user?.displayName || 'Candidate'}\nTitle: ${profile.title}\nLocation: ${profile.city}\nSkills: ${skillsArray.join(', ')}\nExperience: ${profile.experience} years\nCompanies: ${profile.companies}\nEducation: ${profile.education}\nTarget Roles: ${profile.targetRoles}`);
+      }
+
       if (user) {
         await setDoc(doc(db, 'users', user.uid), {
-          naukriProfile: profile,
-          skills: profile.skills
-        }, { merge: true });
+          aiProfile: profile,
+          skills: skillsArray,
+        }, { merge: true }).catch(console.error);
       }
 
       setNaukriMessages(prev => [...prev, {
         role: 'ai',
-        text: `✅ Profile built successfully!\n\nHere's your summary:\n👤 ${profile.title}\n📍 ${profile.city}\n🛠 ${profile.skills.slice(0, 3).join(', ')}\n🎓 ${profile.education}\n\nVelaa will now match you with better jobs!`
+        text: `✅ Profile built!\n\n👤 ${profile.title}\n📍 ${profile.city}\n🛠 ${skillsArray.slice(0, 3).join(', ')}\n🎓 ${profile.education}\n\nFinding your job matches now... 🚀`
       }]);
 
       setIsNaukriTyping(false);
-      triggerSuccess("Naukri profile built successfully!");
+      triggerSuccess("Profile built! Check your job matches.");
+      fetchLiveJobs(profile.targetRoles || profile.title || "software engineer");
 
       setTimeout(() => {
         setShowNaukriChat(false);
         setNaukriStep(0);
         setNaukriMessages([]);
         setNaukriData({});
-      }, 3000);
+        setActiveTab("jobs");
+      }, 2500);
     }, 1500);
   }
 };
@@ -2344,7 +2348,7 @@ function VelaaDashboard() {
                     {/* Sync Cards */}
                     {[
                       { id: 'linkedin', label: 'LinkedIn', icon: Linkedin, color: 'text-blue-600', bg: 'bg-blue-50' },
-                      { id: 'naukri', label: 'Naukri', icon: ExternalLink, color: 'text-rose-600', bg: 'bg-rose-50' }
+                      { id: 'naukri', label: 'AI Profile Builder', icon: MessageSquare, color: 'text-cyan', bg: 'bg-cyan/10' }
                     ].map((platform) => (
                       <div key={platform.id} className="p-8 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-xl transition-all">
                         <div className="flex items-center justify-between mb-6">
@@ -2361,7 +2365,9 @@ function VelaaDashboard() {
                         </div>
                         <h3 className="text-lg font-black text-navy mb-2">Sync {platform.label} Profile</h3>
                         <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-                          Pull your latest skills, certifications, and experience directly from {platform.label}.
+                          {platform.id === 'naukri' 
+                            ? "No resume? Answer 7 quick questions and Velaa AI builds your complete career profile instantly."
+                            : `Pull your latest skills, certifications, and experience directly from ${platform.label}.`}
                         </p>
                         
                         <button 
