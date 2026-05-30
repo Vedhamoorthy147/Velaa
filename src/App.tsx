@@ -326,16 +326,26 @@ function VelaaDashboard() {
 
       setSyncedProfiles(prev => ({ ...prev, naukri: profile }));
 
-      if (!resumeText) {
-        setResumeText(`Name: ${user?.displayName || 'Candidate'}\nTitle: ${profile.title}\nLocation: ${profile.city}\nSkills: ${skillsArray.join(', ')}\nExperience: ${profile.experience} years\nCompanies: ${profile.companies}\nEducation: ${profile.education}\nTarget Roles: ${profile.targetRoles}`);
-      }
+      const resumeFromProfile = [
+  `Name: ${user?.displayName || 'Candidate'}`,
+  `Title: ${profile.title}`,
+  `Location: ${profile.city}`,
+  `Skills: ${skillsArray.join(', ')}`,
+  `Experience: ${profile.experience} years`,
+  `Companies: ${profile.companies}`,
+  `Education: ${profile.education}`,
+  `Target Roles: ${profile.targetRoles}`,
+].join('\n');
 
-      if (user) {
-        await setDoc(doc(db, 'users', user.uid), {
-          aiProfile: profile,
-          skills: skillsArray,
-        }, { merge: true }).catch(console.error);
-      }
+setResumeText(resumeFromProfile);
+
+if (user) {
+  await setDoc(doc(db, 'users', user.uid), {
+    aiProfile: profile,
+    skills: skillsArray,
+    resumeText: resumeFromProfile,
+  }, { merge: true }).catch(console.error);
+}
 
       setNaukriMessages(prev => [...prev, {
         role: 'ai',
@@ -818,7 +828,12 @@ function VelaaDashboard() {
           await runAnalysis(text);
         };
         reader.readAsArrayBuffer(file);
-      } else if (mimeType === "application/pdf" || mimeType.startsWith("image/")) {
+      } else if (mimeType.startsWith("image/")) {
+        toast.error("Image resumes aren't supported yet. Please upload a PDF or DOCX.");
+        setIsAnalyzing(false);
+        setAnalysisStep("");
+        return;
+      } else if (mimeType === "application/pdf") {
         reader.onload = async (e) => {
           const resultStr = e.target?.result as string;
           const base64Data = resultStr.split(",")[1];
